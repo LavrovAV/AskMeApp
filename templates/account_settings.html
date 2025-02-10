@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Account settings
+{% endblock %}
+
+{% block main %}
+    <br>
+    <div class="container">
+        <div class="row mb-3">
+            <form action="/account_settings" method="post">
+                <p class="h3">Change username or e-mail</p>
+                <div class="row mb-3">
+                    <label for="username" class="col-sm-2 col-form-label">Username</label>
+                    <div class="col-sm-10">
+                        <input  id="username" name="username" autocomplete="off" required value="{{ current_user.get_username() }}" type="text" minlength="3" maxlength="30" class="form-control" data-bs-toggle="tooltip" data-bs-placement="top"  data-bs-title="From 3 to 30 characters">
+                    </div>
+                    <label for="email" class="col-sm-2 col-form-label">E-mail</label>
+                    <div class="col-sm-10">
+                        <input id="email" name="email" autocomplete="off" required value="{{ current_user.get_email() }}" type="email" minlength="5" maxlength="50" class="form-control" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="From 5 to 50 characters">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="password" class="col-sm-2 col-form-label">Current password</label>
+                    <div  class="col-sm-10">
+                        <input id="password" name="password" class="form-control" autocomplete="off" required placeholder="" readonly onfocus="this.removeAttribute('readonly')" type="password">
+                    </div>
+                    <label for="captcha" class="col-sm-2 col-form-label">Text from the image below</label>
+                    <div class="col-sm-10">
+                        <input id="captcha" name="captcha" class="form-control" placeholder="" type="text" readonly onfocus="this.removeAttribute('readonly')">
+                    </div>
+                    <div class="col-sm-12 input-group">
+                        <button class="btn btn-outline-secondary col-sm-2" type="button" onclick="getSendEmail()">send</button>
+                        <input type="text" class="form-control col-sm-10" aria-label="" aria-describedby="button-addon1" id="verification_code" name="verification_code" required readonly onfocus="this.removeAttribute('readonly')" placeholder="Please enter the confirmation code that was sent to your email address. Limit is {{ number_of_emails_per_user }} emails per day.">
+                    </div>
+                    <input hidden type="text" name="change_account" value="1"> 
+                </div>
+                <button  type="submit" class="btn btn-secondary col-sm-2">change</button>
+            </form>
+        </div>
+        <br>
+        <div class="row mb-3">
+            <form action="/account_settings" method="post">
+                <p class="h3">Change password</p>
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <input name="new_password" class="form-control" required placeholder="new password" value="" type="password" minlength="5" maxlength="20" readonly onfocus="this.removeAttribute('readonly')" data-bs-toggle="tooltip" data-bs-placement="top"  data-bs-title="From 5 to 20 characters">
+                    </div>
+                    <div class="col-sm-6">
+                        <input name="password" class="form-control" required placeholder="current password" value="" type="password" readonly onfocus="this.removeAttribute('readonly')">
+                    </div>
+                    <div class="col-sm-6">
+                        <input name="confirmation" class="form-control" required placeholder="new password confirmation" value="" type="password" readonly onfocus="this.removeAttribute('readonly')">
+                    </div>
+                    <div class="col-sm-6">
+                        <input name="captcha" class="form-control" required placeholder="enter the text from the image below" type="text" readonly onfocus="this.removeAttribute('readonly')">
+                    </div>   
+                </div>
+                <button type="submit" class="btn btn-secondary col-sm-2">change</button>
+            </form>
+        </div>
+        <br>
+        <div class="row mb-3">
+            <form action="/account_settings" id="formDeleteAccount" method="post">
+                <p class="h3">Delete account</p>
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <input name="password" class="form-control" required placeholder="password" value="" type="password" readonly onfocus="this.removeAttribute('readonly')">
+                    </div>
+                    <div class="col-sm-6">
+                        <input name="captcha" class="form-control" required placeholder="enter the text from the image below" type="text" readonly onfocus="this.removeAttribute('readonly')">
+                    </div> 
+                    <input hidden type="text" name="delete_account" value="1">    
+                </div>   
+                <button type="submit"id="buttonDeleteAccount" class="btn btn-secondary col-sm-2">delete</button>
+            </form>
+        </div>   
+        <br>
+        <div class="row mb-3">
+            <img id="captchaImg" src="{{url_for('static', filename='CAPTCHA.png')}}" alt=""  class="rounded float-start w-25">
+        </div>
+        <div class="row mb-3">
+            <form action="/account_settings" method="get">
+                <button class="btn btn-secondary col-sm-2" type="submit" >change the image</button>
+            </form>
+        </div>
+        <br>
+        <br>
+        <br>
+    </div>
+    <script>
+        // Confirmation of deletion
+        document.getElementById('formDeleteAccount').onsubmit = function(event) {
+            event.preventDefault();
+            if ("{{ current_user.get_status() }}" == "viewer") {
+                if (confirm("Deleting your account will delete all of your data, as well as all of your chat entries. Delete account?")) {
+                    document.getElementById("formDeleteAccount").submit();
+                }
+            } else if ("{{ current_user.get_status() }}" == "streamer") {
+                if (confirm("Deleting your account will delete all of your chats, as well as all of your data. Your viewers will lose access to your chats and all information stored in the chats. Delete account?")) {
+                    document.getElementById("formDeleteAccount").submit();
+                }
+            }
+            return false;
+        }
+    </script>   
+{% endblock %}

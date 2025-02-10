@@ -1,0 +1,135 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <br>
+    <label for="emailLogin" class="h3">Login</label>
+    <form action="/login" method="post">
+        <div class="row mb-3">
+            <label for="emailLogin" class="col-sm-2 col-form-label">E-mail</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" id="emailLogin" name="email" placeholder="" readonly autocomplete="off" autofocus onfocus="this.removeAttribute('readonly')">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="passwordLogin" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="passwordLogin" name="password" placeholder="" readonly onfocus="this.removeAttribute('readonly')">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="captchaLogin" class="col-sm-2 col-form-label">Text from the image below</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="captchaLogin" name="captcha" placeholder="" readonly onfocus="this.removeAttribute('readonly')">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-10 offset-sm-2">
+                <div class="form-check form-switch">
+                    <input name="remain_me" class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                    <label class="form-check-label" for="flexSwitchCheckDefault">Remain me</label>
+                </div>
+            </div>
+        </div>
+        <input hidden id="time_zone" name="time_zone"/>
+        <input hidden id="time_zone_offset" name="time_zone_offset"/>
+        <button type="submit" class="btn btn-secondary col-sm-2">login</button>
+    </form>
+    <br>
+    <br>
+    <label for="email" class="h3">Forgot your password?</label>
+    <fieldset>
+        <form action="/login" method="post">
+            <div class="row mb-3">
+                <label for="email" class="col-sm-2 col-form-label">E-mail</label>
+                <div class="col-sm-10">
+                    <input type="email" class="form-control" id="email" name="email" placeholder="e-mail" autocomplete="off" autofocus>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="new_password" class="col-sm-2 col-form-label">New password</label>
+                <div class="col-sm-10">
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="new_password" 
+                        name="new_password" 
+                        required 
+                        placeholder="New password (5 to 20 characters)" 
+                        value="" 
+                        minlength="5" 
+                        maxlength="20" 
+                        readonly 
+                        onfocus="this.removeAttribute('readonly')"
+                    >
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="confirmation" class="col-sm-2 col-form-label">Confirmation</label>
+                <div class="col-sm-10">
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="confirmation" 
+                        name="confirmation" 
+                        required 
+                        placeholder="New password confirmation" 
+                        value="" 
+                        readonly 
+                        onfocus="this.removeAttribute('readonly')"
+                    >
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="captcha" class="col-sm-2 col-form-label">Text from the image below</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="captcha" name="captcha" placeholder="" readonly onfocus="this.removeAttribute('readonly')">
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-group  mb-3">
+                    <button class="btn btn-outline-secondary col-sm-2" id="button_send_email"  type="button" onclick="getSendEmail()">Send</button>
+                    <input 
+                        type="text" 
+                        class="form-control col-sm-10" 
+                        aria-label="" 
+                        aria-describedby="button-addon1" 
+                        id="verification_code" 
+                        name="verification_code" 
+                        readonly 
+                        onfocus="this.removeAttribute('readonly')" 
+                        placeholder="Please enter the confirmation code that was sent to your email address. Limit is {{ number_of_emails_per_user }} emails per day."
+                    >
+                </div>
+            </div>
+            <button type="submit" class="btn btn-secondary col-sm-2">сhange the password</button>
+        </form>
+    </fieldset>
+    <br>
+    <br>
+    <div class="row mb-3">
+        <img id="captchaImg" src="{{url_for('static', filename='CAPTCHA.png')}}" alt="" class="rounded float-start w-25">
+    </div>
+    <div class="row mb-3">
+        <form action="/login" method="get">
+            <button class="btn btn-secondary col-sm-2" type="submit" >change the image</button>
+        </form>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+</div>
+
+<script>
+    document.getElementById('time_zone').value = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const date = new Date();
+    document.getElementById('time_zone_offset').value = date.getTimezoneOffset() * -1;
+</script>
+{% endblock %}
+

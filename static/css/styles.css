@@ -1,0 +1,31 @@
+/* change background color of bootstrap`s tooltips */
+.tooltip-inner {
+    background-color: #5c5c5e;
+    box-shadow: 0px 0px 4px black;
+    opacity: 1 !important;
+}
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #5c5c5e !important;
+}
+/* Fixing the width of tables. We use it for columns with questions and answers */
+table {
+    table-layout: fixed;
+}
+.questions-answers {
+    word-wrap: break-word;
+}
+/* Backgroung image */
+body { 
+    margin: 0; 
+    padding: 0; 
+    background-size: cover; 
+    background-position: center; 
+    height: 100vh; 
+    transition: background-image 0.3s ease; 
+    background-image: url('/static/images/3d-background-with-white-cubes.jpg'); 
+    color: black; 
+} 
+/* light theme */ 
+:root { 
+    color-scheme: light; 
+}

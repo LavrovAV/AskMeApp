@@ -1,0 +1,198 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Viewer profile
+{% endblock %}
+
+{% block main %}
+<br>
+<div class="container">
+    <div class="row mb-3">
+        <form action="/viewer_profile" method="post" class="col-sm-8">
+            <div class="input-group">
+                <select name="selected_streaming_id" required class="form-select col-sm-3" aria-label="Select streaming to join the chat"> <!-- id="inputGroupSelect04"-->
+                    <option value="" disabled selected>Select streaming to join the chat</option>
+                    {% if all_streamings %}
+                        {% for streaming in all_streamings %}
+                            <option value="{{ streaming['id'] }}">
+                                Date: {{ streaming.streaming_datetime | utc_time_to_local }}, Name of streaming: {{ streaming['name_of_streaming'] }}, Streamer: {{ streaming['username'] }}
+                            </option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <button type="submit" class="btn btn-outline-secondary col-sm-3">join the chat</button>
+            </div>
+        </form>
+    </div>
+    
+    
+    <div class="row mb-3">
+        <form action="/viewer_profile" method="post" id="formLeaveChat" class="col-sm-8">
+            <div class="input-group">
+                <select name="streaming_id_to_del_regist" required  class="form-select col-sm-3"  aria-label="Select streaming to leave chat"> 
+                    <option value="" disabled selected>Select streaming to leave chat</option>
+                    {% if streamings_where_registered %}
+                        {% for streaming in streamings_where_registered %}
+                            <option value="{{ streaming['id'] }}">Date: {{ streaming.streaming_datetime | utc_time_to_local }}, Name of streaming: {{ streaming['name_of_streaming'] }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <button type="submit" class="btn btn-outline-secondary col-sm-3">leave the chat</button>
+            </div>
+        </form>
+    </div>
+    <br>
+    {% if streamings_where_registered %}
+        <p class="h3">Chats you were registered for:</p>
+        <div class="row mb-3">
+            <table class="table table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="col-sm-2 text-center align-middle">Streaming name</th>
+                        <th scope="col" class="col-sm-2 text-center align-middle">Streaming date and time</th>
+                        <th scope="col"class="col-sm-2 text-center align-middle">Streaming duration</th>
+                        <th scope="col"class="col-sm-2 text-center align-middle">Limit of questions per person</th>
+                        <th scope="col" class="col-sm-4 text-center align-middle">Your question (max length {{ length_of_question }} characters)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for streaming in streamings_where_registered %}
+                        <tr>
+                            <td scope="row" class="text-center align-middle">{{ streaming['name_of_streaming'] }}</td>
+                            <td class="text-center align-middle">{{ streaming.streaming_datetime | utc_time_to_local }}</td>
+                            <td class="text-center align-middle">{{ streaming['streaming_duration'] }}</td>
+                            <td class="text-center align-middle">{{ streaming['questions_limit'] }}</td>
+                            <td class="text-center align-middle">
+                                <form action="/viewer_profile" method="post">
+                                    <div class="input-group">
+                                        <input class="col-sm-9" name="question" type="text" placeholder="Please enter your question here" value="" maxlength="{{ length_of_question }}">
+                                        <input hidden name="id_selected_stream" value="{{ streaming['streaming_id'] }}" type="text">
+                                        <button type="submit" class="btn btn-secondary col-sm-3">send</button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+    <br>
+    <br>
+    <p class="h3">Questions, answer time, streamer comments</p>
+    <div class="row mb-3">
+        {% if my_questions %}
+            <form action="/viewer_profile" method="get">
+                <input hidden name="" value="" type="text">
+                <button id="buttonRefresh" type="submit" class="btn btn-light">refresh</button>
+            </form>
+        {% endif %}
+    </div>
+    <div class="row mb-3">
+        <table class="table table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" class="col-sm-1 text-center align-middle">Streaming name</th>
+                    <th scope="col" class="col-sm-1 text-center align-middle">Streaming date and time</th>
+                    <th scope="col" class="col-sm-1 text-center align-middle">Streaming duration</th>
+                    <th scope="col" class="col-sm-2 text-center align-middle">My question</th>
+                    <th scope="col" class="col-sm-1 text-center align-middle">Change the question</th>
+                    <th scope="col" class="col-sm-1 text-center align-middle">Date and time of answer</th>
+                    <th scope="col" class="col-sm-1 text-center align-middle">From the beginning of the streaming</th>
+                    <th scope="col" class="col-sm-3 text-center align-middle">Streamer comment</th>
+                </tr>
+            </thead>
+            {% if my_questions %}
+                <tbody>
+                    {% for question in my_questions %}
+                        <tr>
+                            <td  scope="row" class="text-center align-middle">{{ question['name_of_streaming'] }}</td>
+                            <td  scope="row" class="text-center align-middle">{{ question.streaming_datetime | utc_time_to_local }}</td>
+                            <td  scope="row" class="text-center align-middle">{{ question['streaming_duration'] }}</td>
+                            <form action="/viewer_profile" method="post">
+                                <td scope="row" class="text-center  align-middle"> 
+                                    <input 
+                                        name="change_question" 
+                                        type="text" value="{{ question['question'] }}" 
+                                        maxlength="400" 
+                                        type="text" 
+                                        class="form-control" 
+                                        aria-label="" 
+                                        aria-describedby="inputGroup-sizing-lg"
+                                        title="my question"
+                                    >
+                                </td>
+                                <input hidden name="question_id" value="{{ question['id'] }}" type="text">
+                                <td  scope="row" class="text-center align-middle">{% if not (question['answer_datetime'] or question['comment']) %}<button type="submit" class="btn btn-secondary">change</button>{% endif %}</td>
+                            </form>
+                            <td id="{{ question.id }}answerDatetime"  scope="row" class="text-center align-middle">{% if question['answer_datetime'] %}{{ question.answer_datetime | utc_time_to_local }}{% endif %}</td>
+                            <td  scope="row" class="text-center align-middle">
+                                {% if question['answer_datetime'] %}
+                                    {{  question.streaming_datetime | timedelta_for_answer(question.answer_datetime) }}
+                                {% endif %}
+                            </td>
+                            <td id="{{ question.id }}comment" scope="row" class="text-center align-middle questions-answers">{% if question['comment'] %} {{ question['comment'] }} {% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            {% endif %}
+        </table>
+    </div>
+</div>
+<br>
+    <script>
+        // Confirmation of deletion
+        document.getElementById('formLeaveChat').onsubmit = function(event) {
+            event.preventDefault();
+            if (confirm("If you leave the chat, your registration will be canceled, and all saved information will be deleted from the chat. Leave the chat?")) {
+                document.getElementById("formLeaveChat").submit();
+                return true;
+            } else {
+            return false;
+            }
+        }
+        
+        // check for chat updates in the background
+        async function check_my_questions(){
+            fetch('/viewer_check_chat')
+            .then(response => {
+                if (response.ok) { return response }
+                throw new Error(`Problem on the server side, ${response.status}`)
+            })
+            .then(response => {
+                if (response.status == 200){
+                    response.json()                                                       
+                    .then((arr) => {
+                        for (let i = 0; i < arr.length; i++) {
+                                let utcStr = arr[i]['answer_datetime']
+                                const localDate = new Date(utcStr);
+                                const options = {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                    hour: 'numeric',
+                                    minute: 'numeric',
+                                };
+                                document.getElementById(`${arr[i]['id']}comment`).innerHTML = arr[i]['comment']
+                                if (utcStr !== "None" && utcStr.trim() !== '') {  //to avoid displaying an error message if the date is missing
+                                    localeStr = localDate.toLocaleDateString(undefined, options);
+                                    document.getElementById(`${arr[i]['id']}answerDatetime`).innerHTML = localeStr  
+                                }
+                        }
+                        // Notification of new message in chat. Adding bootstrap classes for button.
+                        if (!document.getElementById("buttonRefresh").classList.contains('btn btn-danger col-sm-2')) {
+                                document.getElementById("buttonRefresh").setAttribute('class', 'btn btn-danger col-sm-2')
+                        }
+                        document.getElementById("buttonRefresh").innerHTML = "Please refresh your chat"
+                    })
+                } 
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+        }
+        if ("{{ my_questions | length }}" > 0) {
+            setInterval(check_my_questions, "{{chat_update_frequency}}") 
+        }
+    </script>
+{% endblock %}

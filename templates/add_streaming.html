@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Add streaming
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <br>
+    <p class="h3 text-center">
+        Maximum number of chats for your streamings in database at once - {{ max_numb_of_streamings }}.
+        {% if numb_of_streamings %}
+        <br>You already have {{ numb_of_streamings }} 
+        {% if numb_of_streamings > 1 %} chats for your streamings.{% endif %}
+        {% elif numb_of_streamings == 1 %} chat for your streaming.{% endif %}
+        {{ endif }} 
+    </p>
+    <br>
+    <br>
+    <div class="row mb-3">
+        <p class="h3">Please save your streaming information and add chat.</p> 
+        <form id="addStreamingForm" action="/add_streaming" method="post">
+            <div class="row">
+                <label for="name_of_streaming" class="col-sm-2 col-form-label">Streaming name</label>
+                <div class="col-sm-10">
+                    <input id="name_of_streaming" class="form-control" type="text" maxlength="{{length_of_streaming_name}}" name="name_of_streaming" placeholder="streaming name" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="max {{length_of_streaming_name}} characters">
+                </div>
+            </div>
+            <div class="row">
+                <label for="streaming_datetime" class="col-sm-2 col-form-label">Start date and time</label>
+                <div class="col-sm-10">
+                    <input id="streaming_datetime" class="form-control" type="datetime-local" max="2100-01-01T00:00" name="streaming_datetime" placeholder="streaming date and time" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+                </div>    
+            </div>
+            <div class="row">
+                <label for="timezone" class="col-sm-2 col-form-label">Timezone</label>
+                <div class="col-sm-10">
+                    <input id="timezone" class="form-control" placeholder="{{ time_zone  }}" readonly>
+                </div>    
+            </div>
+            <div  class="row">
+                <label for="streaming_duration" class="col-sm-2 col-form-label">Duration</label>
+                <div class="col-sm-10">
+                    <input id="streaming_duration" class="form-control" type="time" name="streaming_duration" placeholder="streaming duration" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+                </div>
+            </div>
+            <div  class="row">
+                <label for="questions_limit" class="col-sm-2 col-form-label">Limit of questions</label>
+                <div class="col-sm-10">
+                    <input id="questions_limit" class="form-control" type="number" min="1" max="{{max_number_of_questions}}" name="questions_limit" placeholder="number of questions per viewer" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="limit of questions per chat member - {{max_number_of_questions}}">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-secondary col-sm-2">add chat</button>
+        </form>
+    </div>
+    <br>
+    <br>
+    {% if my_streamings %}
+        <div class="row mb-3">
+            <p class="h3" for="MyStreamingsTable">Chats for your streamings.</p>
+            <table id="MyStreamingsTable" class="table table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="col-sm-1 text-center">streaming name</th>
+                        <th scope="col" class="col-sm-3 text-center">streaming start date and time, timezone</th>
+                        <th scope="col" class="col-sm-2 text-center">streaming duration</th>
+                        <th scope="col" class="col-sm-2 text-center">limit of questions per chat member</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for streaming in my_streamings %}
+                        <tr>
+                            <td scope="row" class="text-center">{{ streaming['name_of_streaming'] }}</td>
+                            <td scope="row" class="text-center">{{ streaming.streaming_datetime  | utc_time_to_local }}</td>
+                            <td scope="row" class="text-center">{{ streaming['streaming_duration'] }}</td>
+                            <td scope="row" class="text-center">{{ streaming['questions_limit'] }}</td>
+                            <td scope="row" class="mx-auto">
+                                <form action="/streamer_profile" method="post" >
+                                    <input hidden name="selected_stream" value="{{ streaming['id'] }}" type="number"> 
+                                    <button type="submit" class="btn btn-secondary col-sm-12">open</button>
+                                </form>
+                            </td>
+                            <td scope="row" >
+                                <form action="/change_streaming" method="post" class="">
+                                    <input hidden name="selected_stream" value="{{ streaming['id'] }}" type="number"> 
+                                    <button type="submit" class="btn btn-secondary col-sm-12">edit</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

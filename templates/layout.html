@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light only">
+
+    <!-- Bootstrap CSS -->
+    <link href="static\bootstrap\css\bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" href="{{  url_for('static', filename='css/styles.css')  }}" rel="stylesheet">
+    <title>{% block title %}{% endblock %}</title>
+    <script>
+        let timeZone =  Intl.DateTimeFormat().resolvedOptions().timeZone;
+        let timeZoneOffset = new Date().getTimezoneOffset() * -1;
+        let timeZoneInfo = JSON.stringify({
+            "timeZone": timeZone,
+            "timeZoneOffset": timeZoneOffset,
+        });
+        fetch('/time_zone_info', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: timeZoneInfo
+        })
+        .then(response => {
+            if (response.ok) { return response }
+            throw new Error(`Failed to load resource: the server responded with a status of ${response.status}. The server did not receive time zone information from the client.`)
+        })
+        .catch(console.error);
+
+        // Restoring scroll position after page load
+        window.addEventListener("beforeunload", () => { sessionStorage.setItem("scrollPosition", window.scrollY); }); 
+        window.addEventListener("load", () => { 
+            const scrollPosition = sessionStorage.getItem("scrollPosition"); 
+            if (scrollPosition) { window.scrollTo(0, parseInt(scrollPosition)); } 
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">AskMeApp</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Navigation switch">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        {% for el in menu %}
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{{el['url']}}">{{el["name"]}}</a>
+                        </li>
+                        {% endfor %}
+                        {% if current_user.is_authenticated %}
+                        <li class="nav-item me-auto" id="account-settings-container">
+                            <a class="nav-link active" aria-current="page" href="/account_settings">ACCOUNT SETTINGS</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+            </div>
+        </nav>
+    </header>
+    <main class="">
+        {% block main %}
+        {% endblock %}
+        <!-- pop-up messages -->
+        {%  for cat, msg in get_flashed_messages(True)  %}
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">AskMeApp massage</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="close"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{msg}}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <!-- pop-up messages for e-mails -->
+        <div class="toast-container position-fixed top-0 end-0 p-3">
+            <div id="liveToastForMails" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">AskMeApp massage</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="close"></button>
+                </div>
+                <div id="msgText" class="toast-body"></div>
+            </div>
+        </div>
+    </main>
+    <footer class="fixed-bottom bg-body">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <p class="text-center">Final project by Alexander Lavrov. Course CS50's Introduction to Computer Science</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Bootstrap -->
+    <script src="..\\static\\bootstrap\\js\\bootstrap.bundle.min.js "></script>
+    <script>
+        // pop-up messages
+        document.addEventListener("DOMContentLoaded", function() {
+            if (document.getElementsByClassName ("flash")){
+                const popUpMessages = document.getElementById('liveToast')
+                bootstrap.Toast.getOrCreateInstance(popUpMessages).show()
+            };
+        });
+        // e-mails and pop-up messages for e-mails
+        async function getSendEmail() {
+            const popUpEmailMessages = document.getElementById('liveToastForMails')
+            let elMsgStatusEmailText = document.getElementById("msgText");
+            let elInputEmail = document.getElementById("email");
+            let enteredEmail = elInputEmail.value;
+            let jsonEnteredEmail = JSON.stringify({"data": enteredEmail});
+            fetch('/send_email', {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: jsonEnteredEmail,   
+            })
+            .then(response => {
+                if (response.ok) { 
+                    return response.json() 
+                } else {
+                    response.json()
+                    .then((value) => {
+                        throw new Error(`${value['message']}`)
+                    })
+                    .catch(error => {
+                        if (elMsgStatusEmailText.classList.contains("text-success")) {
+                            elMsgStatusEmailText.classList.remove("text-success");
+                        }
+                        elMsgStatusEmailText.innerHTML = `${error.message}`;
+                        elMsgStatusEmailText.classList.add("text-danger");
+                        bootstrap.Toast.getOrCreateInstance(popUpEmailMessages).show();
+                    })
+                }
+            })
+            .then(value => {
+                if (value) {
+                    elInputEmail.setAttribute('readonly', 'readonly');
+                    if (elMsgStatusEmailText.classList.contains("text-danger")) {
+                        elMsgStatusEmailText.classList.remove("text-danger");
+                    }
+                    elMsgStatusEmailText.classList.add("text-success");
+                    elMsgStatusEmailText.innerHTML = value['message'];
+                    bootstrap.Toast.getOrCreateInstance(popUpEmailMessages).show();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    // bootstrap - tooltips initialization
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    // light theme
+    document.documentElement.setAttribute('data-bs-theme', 'light'); 
+    </script>
+</body>
+</html>

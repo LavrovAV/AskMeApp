@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Registration
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <br>
+    <form action="/registration" method="post">
+        <div class="input-group mb-3">
+            <select class="form-select" id="status" name="status" title="select status" required>
+                <option value="" disabled selected>select status</option>
+                <option value="streamer">streamer</option>
+                <option value="viewer">viewer</option>
+            </select>
+        </div>
+        <div class="row mb-3">
+            <label for="username" class="col-sm-2 col-form-label">User name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="username" name="username" required placeholder="User name" minlength="3" maxlength="30" autocomplete="off"  readonly onfocus="this.removeAttribute('readonly')"  data-bs-toggle="tooltip" data-bs-placement="top"  data-bs-title="From 3 to 30 characters">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="email" class="col-sm-2 col-form-label">E-mail</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" id="email" name="email" required placeholder="e-mail" minlength="5" maxlength="50" autocomplete="off"  data-bs-toggle="tooltip" data-bs-placement="top"  data-bs-title="From 5 to 50 characters">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="password" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="password" name="password" required placeholder="password" minlength="5" maxlength="20" readonly onfocus="this.removeAttribute('readonly')"  data-bs-toggle="tooltip" data-bs-placement="top"  data-bs-title="From 5 to 20 characters">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="confirmation" class="col-sm-2 col-form-label">Password confirmation</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="confirmation" name="confirmation" required placeholder="confirmation" readonly onfocus="this.removeAttribute('readonly')">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="captcha" class="col-sm-2 col-form-label">Enter the text from the image below</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="captcha" name="captcha" placeholder="" readonly onfocus="this.removeAttribute('readonly')">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-12 input-group">
+                <button class="btn btn-outline-secondary col-sm-2" id="button_send_email"  type="button" onclick="getSendEmail()">Send</button>
+                <input type="text" class="form-control" aria-label="" aria-describedby="button-addon1" id="verification_code" name="verification_code" readonly onfocus="this.removeAttribute('readonly')" placeholder="Please enter the confirmation code that was sent to your email address. Limit is {{ number_of_emails_per_user }} emails per day.">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-secondary col-sm-2">create account</button>
+    </form>
+    <br>
+    <div class="row mb-3">
+        <img id="captchaImg" src="{{url_for('static', filename='CAPTCHA.png')}}" alt="" class="rounded float-start w-25">
+    </div>
+    <form action="/registration" method="get">
+        <button class="btn btn-secondary col-sm-2" type="submit" >change the image</button>
+    </form>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+{% endblock %}
+
+

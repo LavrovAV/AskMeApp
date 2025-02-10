@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <div>
+        <div class="row mb-3">
+            <p class="text-center h3 text-body-secondary">AskMeApp is a tool for communication between streamers and viewers.</p>
+            <p class="text-center h4 text-body-secondary">AskMeApp allows streamers to receive questions from viewers and provide viewers with feedback in the form of private messages or timestamps when they have answered a viewer's question during a broadcast.</p>
+
+        </div>
+        <br>
+        <br>
+        <br>
+        <div class="row mb-3">
+            <p class="text-center">
+                <button class="btn btn-secondary col-sm-4 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample1" aria-expanded="false" aria-controls="multiCollapseExample1">You are streaming live and want to receive questions from viewers</button>
+                <button class="btn btn-secondary col-sm-4 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">You are watching the broadcast and ask questions to the host</button>
+            </p>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="collapse multi-collapse mx-auto" id="multiCollapseExample1">
+                        <div class="card card-body">
+                            <ul>
+                                <li><a href="/registration" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Register</a> as a Streamer</li>
+                                <li>Add a chat for your streaming broadcast</li>
+                                <li>Save and edit your streaming information</li>
+                                <li>Receive questions from your viewers</li>
+                                <li>Save answers as private messages in the chat</li>
+                                <li>Time-stamp your answers in the chat when you give answers during the broadcast</li>
+                            </ul>                
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4"></div>
+                <div class="col-sm-4">
+                    <div class="collapse multi-collapse" id="multiCollapseExample2">
+                        <div class="card card-body">
+                            <ul>
+                                <li> <a href="/registration" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Register</a> as a viewer</li>
+                                <li>Select streaming and register in the chat</li>
+                                <li>Send questions to the host via chat</li>
+                                <li>Receive personal answers in the chat or information about the response time, to easily find the answer to your question in the streaming recording</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

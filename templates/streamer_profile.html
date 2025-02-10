@@ -1,0 +1,278 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Streamer profile
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <br>
+    <div class="row mb-3">
+        <div class="col-sm-6 mx-auto">
+            <select class="form-select" name="chatsAdministration" id="chatsAdministration-select" onchange="window.location.href = this.options[this.selectedIndex].value" title="Managing chats for your streamings, add or edit chat.">
+                <option value="" disabled selected>Add chat or edit streaming information.</option>
+                <option value="/add_streaming">add</option>
+                <option value="/change_streaming">edit or delete</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <form action="/streamer_profile" method="post" class="col-sm-6 mx-auto"> 
+            <div class="input-group">
+                <select class="form-select col-sm-10" id="selectedStream-select" name="selected_stream" required title="Select streaming to display information and chat">
+                    <option value="" disabled selected>Select streaming to display information and chat.</option>
+                    {% if my_streamings %}
+                        {% for streaming in my_streamings %}
+                            <option value="{{ streaming['id'] }}">{{ streaming['name_of_streaming'] }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <button class="btn btn-outline-secondary col-sm-4" type="submit">select</button>
+            </div>
+        </form> 
+    </div>
+    {% if my_streamings and selected_stream %}
+        <div class="row mb-3">
+            <table class="table table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="col-sm-2 text-center align-middle">streaming name</th>
+                        <th scope="col" class="col-sm-2 text-center align-middle">streaming date and time, timezone</th>
+                        <th scope="col" class="col-sm-2 text-center align-middle">streaming duration</th>
+                        <th scope="col" class="col-sm-2 text-center align-middle">number of people registered in the chat</th>
+                        <th scope="col" class="col-sm-2 text-center align-middle">limit the number of questions per person</th>
+                        <th scope="col" class="col-sm-2 text-center align-middle"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for streaming in my_streamings %}
+                        {% if streaming["id"] == selected_stream %}
+                            <tr>
+                                <td scope="row" class="text-center align-middle">{{ streaming['name_of_streaming'] }}</td>
+                                <td class="text-center align-middle">{{ streaming.streaming_datetime  | utc_time_to_local }}</td>
+                                <td class="text-center align-middle">{{ streaming['streaming_duration'] }}</td>
+                                <td class="text-center align-middle">{{ list_of_registered | length }}</td>
+                                <td class="text-center align-middle">{{ streaming['questions_limit'] }}</td>
+                                <td class="text-center align-middle">
+                                    <form action="/change_streaming" method="post">
+                                        <input hidden name="selected_stream" value="{{ streaming['id'] }}" type="number"> 
+                                        <button type="submit" class="btn btn-secondary col-sm-12">edit</button>
+                                    </form>
+                                </td>    
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if list_of_registered and selected_stream %}
+            <div  class="row">
+                <form action="/streamer_profile" method="post">
+                    <div  class="input-group mb-3">
+                        <select name="viewer_id_for_ban" id="blockUser-select" class="form-control col-sm-10" required title="select a chat member">
+                            <option value="" disabled selected>Select the chat member you want to block</option>
+                            {% for row in list_of_registered %}
+                                <option value="{{ row['viewer_id'] }}">{{ row['username'] }}</option>
+                            {% endfor %}
+                        </select>
+                        <input hidden name="selected_stream" value="{{ selected_stream }}" type="number">
+                        <button type="submit" class="btn btn-secondary col-sm-2">block</button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+        {% if list_blocked_users %}
+            <div  class="row">
+                <form id="unblockForm" action="/streamer_profile" method="post">
+                    <div  class="input-group mb-3">
+                        <select 
+                            name="user_id_for_unblock" 
+                            id="unblockUser-select" 
+                            class="form-control col-sm-10" 
+                            required 
+                            title="select a chat member"
+                            >
+                            <option value="" disabled selected>Select the chat member you want to unblock</option>
+                            {% for row in list_blocked_users %}
+                                <option value="{{ row['viewer_id'] }}">{{ row['username'] }}</option>
+                            {% endfor %}
+                        </select>
+                        <input hidden name="selected_stream" value="{{ selected_stream }}" type="number">
+                        <button type="submit" class="btn btn-secondary col-sm-2">unblock</button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+        <div  class="row">
+            <form action="/streamer_profile" method="post">
+                <input hidden name="selected_stream" value="{{ selected_stream }}" type="number">
+                <input hidden name="streaming_datetime" value="1" >
+                <div  class="input-group  mb-3">
+                    <input 
+                        class="form-control col-sm-10" 
+                        placeholder="Please synchronize the start time of streaming in the chat with the real start time of streaming" 
+                        readonly 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        data-bs-title="This way your viewers will be able to get accurate information about the timing of your answers to viewer questions."
+                    >
+                    <button type="submit" class="btn btn-secondary col-sm-2">start</button>
+                </div>
+            </form>
+        </div>
+        <div class="row">
+            <div class="input-group mb-3">
+                <div class="input-group-text">
+                    <fieldset>
+                        <span>days</span>
+                        <span id="d"></span>
+                        <span>hours</span>
+                        <span id="h"></span>
+                        <span id="m"></span>
+                        <span id="s"></span>
+                    </fieldset>
+                </div>
+                <input type="text" class="form-control col-sm-2 " placeholder="Remaining time until the end of the streaming" title="Remaining time until the end of the streaming" readonly></input>
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="row mb-3">
+            <form action="/streamer_profile" method="post">
+                <input hidden name="selected_stream" value="{{ selected_stream }}" type="number">
+                <button id="buttonRefresh" type="submit" class="btn btn-secondary col-sm-2">refresh chat</button>
+            </form>
+        </div>
+        <div class="row mb-3">
+            <table  class="table table-striped">
+                <thead  class="table-light">
+                    <tr>
+                        <th class="col-sm-1 text-center align-middle">date and time of question, timezone</th>
+                        <th class="col-sm-1 text-center align-middle">username</th>
+                        <th class="col-sm-5 text-center align-middle">question</th>
+                        <th class="col-sm-1 text-center align-middle">date and time of answer, timezone</th>
+                        <th class="col-sm-1 text-center align-middle">response time from start of streaming</th>
+                        <th class="col-sm-3 text-center align-middle"><label for="commentInput">leave a comment personally for the viewer<br/>(max {{ length_of_answer }} characters)</label></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if my_chat %}
+                        {% for row in my_chat %}
+                            <tr>
+                                <td scope="row" class="text-center align-middle">{{ row.question_datetime | utc_time_to_local }}</td>
+                                <td class="text-center align-middle">{{ row['username'] }}</td>
+                                <td class="text-center align-middle questions-answers">{{ row['question'] }}</td>
+                                <td class="text-center align-middle">
+                                    {% if not row['answer_datetime'] %}
+                                    <form action="/streamer_profile" method="post">
+                                        <input hidden name="time_of_answer" type="text" value="1">
+                                        <input hidden name="selected_stream" value="{{ selected_stream }}" type="number"> 
+                                        <input hidden name="question_id" value="{{ row['id'] }}" type="number">
+                                        <button type="submit" class="btn btn-secondary">set time</button>
+                                    </form>
+                                    {% endif %}
+                                    {% if row['answer_datetime'] %}
+                                    {{ row.answer_datetime | utc_time_to_local }}
+                                    {% endif %}
+                                </td>
+                                <td class="text-center align-middle">
+                                    {% if row['answer_datetime'] %}
+                                        {{  row.streaming_datetime | timedelta_for_answer(row.answer_datetime) }}
+                                    {% endif %}
+                                </td>
+                                <form action="/streamer_profile" method="post">
+                                    <td class="text-center align-middle">
+                                        <input hidden name="selected_stream" value="{{ selected_stream }}" type="number">
+                                        <input hidden name="question_id" value="{{ row['id'] }}" type="number">
+                                        <div class="input-group">
+                                            <input name="comment" id="commentInput" class="form-control" type="text" value="{%if row['comment']%}{{row['comment']}}{%endif%}" maxlength="{{ length_of_answer }}">
+                                            <button type="submit" class="btn btn-secondary">send</button>
+                                        </div>
+                                    </td>
+                                </form>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+    <br>
+    <br>
+    <br>
+</div>
+    <script>
+        // Checking for new chat messages
+        async function check_chat() {
+            let jsonRequest = JSON.stringify({
+                "selected_stream": "{{ selected_stream }}", 
+                "number_of_questions": "{{ my_chat | length }}"
+            });
+            fetch('/streamer_check_chat', {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: jsonRequest,   
+            })
+            .then(response => {
+                if (response.status == 200){
+                    if (!document.getElementById("buttonRefresh").classList.contains('btn btn-danger col-sm-2')) {
+                            document.getElementById("buttonRefresh").setAttribute('class', 'btn btn-danger col-sm-2')
+                    }
+                    document.getElementById("buttonRefresh").innerHTML = "Please refresh your chat"
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+        }
+        if ("{{ selected_stream }}") {
+            // The variable chat_update_frequency is declared in the helpers.py file
+            setInterval(()=>check_chat(), "{{chat_update_frequency}}") 
+
+            // Set on the page remaining time until the end of the streaming
+            document.addEventListener("DOMContentLoaded", function() {
+                "{% for streaming in my_streamings %}"
+                    "{% if streaming.id == selected_stream %}"
+                        var streamingDuration = "{{ streaming.streaming_duration }}"
+                        let [hours, minutes] = streamingDuration.split(':');
+                        let seconds = Number(hours)*3600 + Number(minutes)*60
+                        var streamingStartDatetimeStr = "{{ streaming.streaming_datetime  | utc_db_time_to_local_js_format }}"
+                        var streamingEndDatetimeObject = new Date(streamingStartDatetimeStr);
+                        streamingEndDatetimeObject.setSeconds(streamingEndDatetimeObject.getSeconds() + seconds);
+                    "{% endif %}"
+                "{% endfor %}"
+                var _second = 1000;
+                var _minute = _second * 60;
+                var _hour = _minute * 60;
+                var _day = _hour * 24;
+                var now = new Date();
+                var end = streamingEndDatetimeObject
+                var distance = end-now;
+                function showRemaining() {
+                    var now = new Date();
+                    var distance = end-now;
+                    var days = Math.floor(distance / _day);
+                    if (days < 10) days = '0' + days;
+                    var hours = Math.floor((distance % _day) / _hour);
+                    if (hours < 10) hours = '0' + hours;
+                    var minutes = Math.floor((distance % _hour) / _minute);
+                    if (minutes < 10) minutes = '0' + minutes;
+                    var seconds = Math.floor((distance % _minute) / _second);
+                    if (seconds < 10) seconds = '0' + seconds;
+                    document.getElementById('d').innerText = (days);
+                    document.getElementById('h').innerText = (hours);
+                    document.getElementById('m').innerText = (": " + minutes);
+                    document.getElementById('s').innerText = (": " + seconds);
+                }
+                if (distance > 0) {
+                setInterval(()=>showRemaining(), 1000) 
+                } else {
+                    document.getElementById('d').innerText = "0";
+                    document.getElementById('h').innerText = "00";
+                    document.getElementById('m').innerText = ": " + "00";
+                    document.getElementById('s').innerText = ": " + "00";
+                }
+            }); 
+        }
+    </script>
+{% endblock %}

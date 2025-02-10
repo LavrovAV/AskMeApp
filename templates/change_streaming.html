@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Edit chat
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <br>
+        <div class="row mb-3">
+            <div class="col-sm-6 mx-auto">
+                <form id="selectStreamingForm" action="/change_streaming" method="post" class="col-sm-6 mx-auto input-group">
+                    <select name="selected_stream" required class="form-select" title="Select streaming to edit a streaming information or delete a chat">
+                        <option value="" disabled selected>Select streaming to edit a streaming information or delete a chat</option>
+                        {% if my_streamings %}
+                            {% for streaming in my_streamings %}
+                                <option value="{{ streaming['id'] }}" type="number">{{ streaming['name_of_streaming'] }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <button type="submit" class="btn btn-outline-secondary col-sm-2">select</button>
+                </form>
+            </div>
+        </div>
+        <br>
+        <br>
+        {% if my_streamings and selected_stream %}
+            {% for streaming in my_streamings %}
+                {% if streaming.id == selected_stream %}
+                    <div class="row mb-3">
+                        <p class="h3">Please edit the streaming information or delete the chat.</p>         
+                        <form action="/change_streaming" method="post">
+                            <div class="row">
+                                <label for="name_of_streaming" class="col-sm-2 col-form-label">Streaming name</label>
+                                <div class="col-sm-10">
+                                    <input id="name_of_streaming" class="form-control" type="text" maxlength="{{length_of_streaming_name}}" name="name_of_streaming" value="{{ streaming['name_of_streaming'] }}" required autocomplete="off" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="max {{length_of_streaming_name}} characters">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <label for="streaming_datetime" class="col-sm-2 col-form-label">Start date and time</label>
+                                <div class="col-sm-10">
+                                    <input id="streaming_datetime" class="form-control" type="datetime-local" max="2100-01-01T00:00" name="streaming_datetime" value="{{ streaming.streaming_datetime  | db_time_to_dispay_in_form }}" placeholder="{{ streaming.streaming_datetime  | db_time_to_dispay_in_form }}" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <label for="timezone" class="col-sm-2 col-form-label">Timezone</label>
+                                <div class="col-sm-10">
+                                    <input id="timezone" class="form-control" placeholder="{{ time_zone  }}" readonly>
+                                </div>    
+                            </div>
+                            <div  class="row">
+                                <label for="streaming_duration" class="col-sm-2 col-form-label">Duration</label>
+                                <div class="col-sm-10">
+                                    <input id="streaming_duration" class="form-control" type="time" name="streaming_duration" value="{{ streaming['streaming_duration'] }}" required autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="row  mb-3">
+                                <label for="questions_limit" class="col-sm-2 col-form-label">Limit of questions</label>
+                                <div class="col-sm-10">
+                                    <input id="questions_limit" class="form-control" type="number" min="1" max="{{max_number_of_questions}}" name="questions_limit" value="{{ streaming['questions_limit'] }}" required autocomplete="off" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="limit of questions per chat member - {{max_number_of_questions}}">
+                                </div>
+                            </div> 
+                            <input hidden type="number" name="selected_stream" value="{{ selected_stream }}">               
+                            <input hidden type="number" name="streaming_to_change" value="{{streaming['id']}}">
+                            <div class="row mb-3">
+                                <button type="submit" class="btn btn-secondary col-sm-2">edit</button>
+                            </div>
+                        </form>
+                        <form action="/change_streaming" method="post"id="formDeleteStreaming">
+                            <input hidden name="selected_stream" value="{{ selected_stream }}" type="number"> 
+                            <input hidden name="streaming_to_delete" value="{{ selected_stream }}" type="number" >
+                            <div class="row">
+                                <button type="submit"  class="btn btn-secondary col-sm-2">delete</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+    <script>
+        // Confirmation of deletion
+        document.getElementById('formDeleteStreaming').onsubmit = function(event) {
+            event.preventDefault();
+            if (confirm("Deleting the streaming will delete the chat, as well as all information saved in the chat. Your viewers will lose access to the chat and all information stored in the chat. Delete the streaming?")) {
+                document.getElementById("formDeleteStreaming").submit();
+                return true;
+            } else {
+            return false;
+            }
+        }
+    </script> 
+{% endblock %}
